@@ -1,10 +1,11 @@
 import wandb
 from sklearn.metrics import accuracy_score
+from torch.nn.functional import one_hot
 
 from utils import *
 
 
-def run(args, model, train_data, valid_data, cv_count):
+def run(args, model, tokenizer, train_data, valid_data, cv_count):
     train_loader, valid_loader = get_loaders(args, train_data, valid_data)
 
     # only when using warmup scheduler
@@ -26,7 +27,7 @@ def run(args, model, train_data, valid_data, cv_count):
             model_name = f"{args.run_name.split('.pt')[0]}_{cv_count}.pt"
 
         # TRAIN
-        train_acc, train_loss = train(args, train_loader, model, optimizer)
+        train_acc, train_loss = train(args, model, tokenizer, train_loader, optimizer)
 
         # VALID
         acc, _, _, val_loss = validate(args, valid_loader, model)
@@ -66,48 +67,48 @@ def run(args, model, train_data, valid_data, cv_count):
     return best_acc
 
 
-def train(args, train_loader, model, optimizer):
+def train(args, model, tokenizer, train_loader, optimizer):
     model.train()
 
     total_preds = []
     total_targets = []
     losses = []
     for step, batch in enumerate(train_loader):
-        print(batch)
-        exit()
-        input = process_batch(batch, args)
+        idx, text, label = batch
 
-        '''
-        input 순서는 category + continuous + mask
+        tokenized_examples = tokenizer(
+            text,
+            max_length=args.max_seq_len,
+            padding="max_length",
+            return_tensors="pt"
+        )
 
-        'answerCode', 'interaction', 'assessmentItemID', 'testId', 'KnowledgeTag', + 추가 category
-        + 추가 cont
-        + 'mask'
-        '''
+        # tokenize
+        # 모델의 입력으로
+        # label은 one-hot?
+        # loss 주고
+        # argmax를 golden
 
-        preds = model(input)
-        targets = input[0]  # correct
-        loss = compute_loss(preds, targets, args)
+        preds = model(**tokenized_examples)
+        logits = preds['logits']
+        argmax_logits = torch.argmax(logits, dim=1)
+        loss = compute_loss(logits, one_hot(label).type(torch.FloatTensor), args)
         update_params(loss, model, optimizer, args)
 
         if step % args.log_steps == 0:
             print(f"Training steps: {step} Loss: {str(loss.item())}")
 
-        # predictions
-        preds = preds[:, -1]
-        targets = targets[:, -1]
-
         if args.device == 'cuda':
-            preds = preds.to('cpu').detach().numpy()
-            targets = targets.to('cpu').detach().numpy()
+            argmax_logits = argmax_logits.to('cpu').detach().numpy()
+            label = label.to('cpu').detach().numpy()
             loss = loss.to('cpu').detach().numpy()
         else:  # cpu
-            preds = preds.detach().numpy()
-            targets = targets.detach().numpy()
+            argmax_logits = argmax_logits.detach().numpy()
+            label = label.detach().numpy()
             loss = loss.detach().numpy()
 
-        total_preds.append(preds)
-        total_targets.append(targets)
+        total_preds.append(argmax_logits)
+        total_targets.append(label)
         losses.append(loss)
 
     total_preds = np.concatenate(total_preds)

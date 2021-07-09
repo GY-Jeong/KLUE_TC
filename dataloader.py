@@ -32,6 +32,7 @@ class YNAT_dataset(torch.utils.data.Dataset):
 
     def __getitem__(self, index):
         row = self.data[index]
+        element = [row[i] for i in range(len(row))]
         #print(type(row))
         # np.array -> torch.tensor 형변환
         #for i, col in enumerate(row):
@@ -40,5 +41,5 @@ class YNAT_dataset(torch.utils.data.Dataset):
         #    else:
         #        row[i] = torch.tensor(col)
 
-        return row
+        return element
 

@@ -13,7 +13,8 @@ def parse_args():
     parser.add_argument('--data_dir', default='./data/open/', type=str, help='data directory')
 
     parser.add_argument('--model_dir', default='models/', type=str, help='model directory')
-    parser.add_argument('--model_name_or_path', default='monologg/koelectra-base-v3-discriminator', type=str, help='model file name')
+    parser.add_argument('--model_name_or_path', default='monologg/koelectra-base-v3-discriminator', type=str,
+                        help='model file name')
     parser.add_argument('--config_name', default=None, type=str, help='model config name')
     parser.add_argument('--tokenizer_name', default=None, type=str, help='model tokenizer name')
 
@@ -28,6 +29,7 @@ def parse_args():
     parser.add_argument('--lr', default=0.0001, type=float, help='learning rate')
     parser.add_argument('--clip_grad', default=10, type=int, help='clip grad')
     parser.add_argument('--patience', default=5, type=int, help='for early stopping')
+    parser.add_argument('--max_seq_len', default=40, type=int, help='for early stopping')
 
     # Optimizer
     parser.add_argument('--optimizer', default='adam', type=str, help='optimizer type')
@@ -44,7 +46,10 @@ def parse_args():
     parser.add_argument('--plateau_patience', default=10, type=int, help='patience of plateau scheduler')
     parser.add_argument('--plateau_factor', default=0.5, type=float, help='factor of plateau scheduler')
 
+    parser.add_argument('--criterion', default='MSE', type=str, help='criterion type')
+
+    parser.add_argument('--log_steps', default=1, type=int, help='print log per n steps')
+
     args = parser.parse_args()
 
     return args
-

@@ -56,7 +56,7 @@ def main(args):
     for fold_num, (train_index, valid_index) in enumerate(splits):
         train_data = train_data_origin[train_index]
         valid_data = train_data_origin[valid_index]
-        best_acc = trainer.run(args, model, train_data, valid_data, fold_num + 1)
+        best_acc = trainer.run(args, model, tokenizer, train_data, valid_data, fold_num + 1)
 
         if not args.cv_strategy:
             break
