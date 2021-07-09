@@ -1,0 +1,322 @@
+[
+    {
+        "guid": "ynat-v1_dev_00000",
+        "title": "5억원 무이자 융자는 되고 7천만원 이사비는 안된다",
+        "predefined_news_category": "경제",
+        "label": "사회",
+        "annotations": {
+            "annotators": [
+                "18",
+                "03",
+                "15"
+            ],
+            "annotations": {
+                "first-scope": [
+                    "사회",
+                    "사회",
+                    "경제"
+                ],
+                "second-scope": [
+                    "해당없음",
+                    "해당없음",
+                    "사회"
+                ],
+                "third-scope": [
+                    "해당없음",
+                    "해당없음",
+                    "생활문화"
+                ]
+            }
+        },
+        "url": "https://news.naver.com/main/read.nhn?mode=LS2D&mid=shm&sid1=101&sid2=260&oid=001&aid=0009563542",
+        "date": "2017.09.21. 오후 5:09"
+    },
+    {
+        "guid": "ynat-v1_dev_00001",
+        "title": "왜 수소충전소만 더 멀리 떨어져야 하나 한경연 규제개혁 건의",
+        "predefined_news_category": "경제",
+        "label": "사회",
+        "annotations": {
+            "annotators": [
+                "11",
+                "14",
+                "13"
+            ],
+            "annotations": {
+                "first-scope": [
+                    "정치",
+                    "사회",
+                    "사회"
+                ],
+                "second-scope": [
+                    "사회",
+                    "해당없음",
+                    "해당없음"
+                ],
+                "third-scope": [
+                    "경제",
+                    "해당없음",
+                    "해당없음"
+                ]
+            }
+        },
+        "url": "https://news.naver.com/main/read.nhn?mode=LS2D&mid=shm&sid1=101&sid2=261&oid=001&aid=0010476386",
+        "date": "2018.11.19. 오전 11:53"
+    },
+    {
+        "guid": "ynat-v1_dev_00002",
+        "title": "항응고제 성분 코로나19에 효과…세포실험서 확인",
+        "predefined_news_category": "IT과학",
+        "label": "IT과학",
+        "annotations": {
+            "annotators": [
+                "15",
+                "08",
+                "16"
+            ],
+            "annotations": {
+                "first-scope": [
+                    "IT과학",
+                    "IT과학",
+                    "사회"
+                ],
+                "second-scope": [
+                    "경제",
+                    "해당없음",
+                    "해당없음"
+                ],
+                "third-scope": [
+                    "사회",
+                    "해당없음",
+                    "해당없음"
+                ]
+            }
+        },
+        "url": "https://news.naver.com/main/read.nhn?mode=LS2D&mid=shm&sid1=105&sid2=228&oid=001&aid=0011608800",
+        "date": "2020.05.14. 오후 2:23"
+    },
+    {
+        "guid": "ynat-v1_dev_00003",
+        "title": "실거래가 가장 비싼 역세권은 신반포역…3.3㎡당 1억 육박",
+        "predefined_news_category": "경제",
+        "label": "경제",
+        "annotations": {
+            "annotators": [
+                "14",
+                "13",
+                "12"
+            ],
+            "annotations": {
+                "first-scope": [
+                    "경제",
+                    "경제",
+                    "경제"
+                ],
+                "second-scope": [
+                    "사회",
+                    "해당없음",
+                    "해당없음"
+                ],
+                "third-scope": [
+                    "해당없음",
+                    "해당없음",
+                    "해당없음"
+                ]
+            }
+        },
+        "url": "https://news.naver.com/main/read.nhn?mode=LS2D&mid=shm&sid1=101&sid2=260&oid=001&aid=0011964582",
+        "date": "2020.10.23. 오전 5:31"
+    },
+    {
+        "guid": "ynat-v1_dev_00004",
+        "title": "기자회견 하는 성 소수자 단체",
+        "predefined_news_category": "사회",
+        "label": "사회",
+        "annotations": {
+            "annotators": [
+                "03",
+                "18",
+                "02"
+            ],
+            "annotations": {
+                "first-scope": [
+                    "사회",
+                    "사회",
+                    "사회"
+                ],
+                "second-scope": [
+                    "해당없음",
+                    "해당없음",
+                    "해당없음"
+                ],
+                "third-scope": [
+                    "해당없음",
+                    "해당없음",
+                    "해당없음"
+                ]
+            }
+        },
+        "url": "https://news.naver.com/main/read.nhn?mode=LS2D&mid=shm&sid1=102&sid2=257&oid=001&aid=0011849201",
+        "date": "2020.08.31. 오후 1:51"
+    },
+    {
+        "guid": "ynat-v1_dev_00005",
+        "title": "모의선거 교육 불허 선관위·교육부 각성하라",
+        "predefined_news_category": "사회",
+        "label": "사회",
+        "annotations": {
+            "annotators": [
+                "10",
+                "09",
+                "07"
+            ],
+            "annotations": {
+                "first-scope": [
+                    "사회",
+                    "사회",
+                    "사회"
+                ],
+                "second-scope": [
+                    "해당없음",
+                    "해당없음",
+                    "해당없음"
+                ],
+                "third-scope": [
+                    "해당없음",
+                    "해당없음",
+                    "해당없음"
+                ]
+            }
+        },
+        "url": "https://news.naver.com/main/read.nhn?mode=LS2D&mid=shm&sid1=102&sid2=250&oid=001&aid=0011423921",
+        "date": "2020.02.24. 오후 3:40"
+    },
+    {
+        "guid": "ynat-v1_dev_00006",
+        "title": "뮤지컬 영웅 합류한 안재욱 정성화와 다른 안중근 보여줄것",
+        "predefined_news_category": "생활문화",
+        "label": "생활문화",
+        "annotations": {
+            "annotators": [
+                "09",
+                "08",
+                "13"
+            ],
+            "annotations": {
+                "first-scope": [
+                    "생활문화",
+                    "생활문화",
+                    "생활문화"
+                ],
+                "second-scope": [
+                    "해당없음",
+                    "해당없음",
+                    "사회"
+                ],
+                "third-scope": [
+                    "해당없음",
+                    "해당없음",
+                    "해당없음"
+                ]
+            }
+        },
+        "url": "https://news.naver.com/main/read.nhn?mode=LS2D&mid=shm&sid1=103&sid2=242&oid=001&aid=0008984890",
+        "date": "2017.01.24. 오후 4:31"
+    },
+    {
+        "guid": "ynat-v1_dev_00007",
+        "title": "가짜뉴스 징벌적 손해배상제도 도입 변협 토론회",
+        "predefined_news_category": "사회",
+        "label": "사회",
+        "annotations": {
+            "annotators": [
+                "10",
+                "12",
+                "07"
+            ],
+            "annotations": {
+                "first-scope": [
+                    "사회",
+                    "사회",
+                    "사회"
+                ],
+                "second-scope": [
+                    "해당없음",
+                    "해당없음",
+                    "해당없음"
+                ],
+                "third-scope": [
+                    "해당없음",
+                    "해당없음",
+                    "해당없음"
+                ]
+            }
+        },
+        "url": "https://news.naver.com/main/read.nhn?mode=LS2D&mid=shm&sid1=102&sid2=254&oid=001&aid=0011751945",
+        "date": "2020.07.17. 오전 6:00"
+    },
+    {
+        "guid": "ynat-v1_dev_00008",
+        "title": "MBN 노조 부동산 물적분할 중단하고 소유경영 분리해야",
+        "predefined_news_category": "사회",
+        "label": "사회",
+        "annotations": {
+            "annotators": [
+                "02",
+                "11",
+                "08"
+            ],
+            "annotations": {
+                "first-scope": [
+                    "사회",
+                    "사회",
+                    "사회"
+                ],
+                "second-scope": [
+                    "해당없음",
+                    "해당없음",
+                    "해당없음"
+                ],
+                "third-scope": [
+                    "해당없음",
+                    "해당없음",
+                    "해당없음"
+                ]
+            }
+        },
+        "url": "https://news.naver.com/main/read.nhn?mode=LS2D&mid=shm&sid1=102&sid2=254&oid=001&aid=0011924647",
+        "date": "2020.10.06. 오후 4:32"
+    },
+    {
+        "guid": "ynat-v1_dev_00009",
+        "title": "포스코건설 11년 만에 더 샵 브랜드 로고 교체",
+        "predefined_news_category": "경제",
+        "label": "경제",
+        "annotations": {
+            "annotators": [
+                "07",
+                "14",
+                "12"
+            ],
+            "annotations": {
+                "first-scope": [
+                    "경제",
+                    "사회",
+                    "경제"
+                ],
+                "second-scope": [
+                    "해당없음",
+                    "해당없음",
+                    "해당없음"
+                ],
+                "third-scope": [
+                    "해당없음",
+                    "해당없음",
+                    "해당없음"
+                ]
+            }
+        },
+        "url": "https://news.naver.com/main/read.nhn?mode=LS2D&mid=shm&sid1=101&sid2=261&oid=001&aid=0011331238",
+        "date": "2020.01.13. 오전 11:45"
+    }
+]
