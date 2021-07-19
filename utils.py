@@ -9,6 +9,7 @@ from adamp import AdamP
 from torch.optim.lr_scheduler import StepLR, ReduceLROnPlateau, CosineAnnealingLR, ExponentialLR, \
     CosineAnnealingWarmRestarts
 from transformers import get_linear_schedule_with_warmup
+from transformers import AutoConfig, AutoTokenizer, AutoModelForSequenceClassification
 
 from dataloader import YNAT_dataset
 
@@ -82,24 +83,51 @@ def save_checkpoint(state, model_dir, model_filename):
     torch.save(state, os.path.join(model_dir, model_filename))
 
 
+def load_tokenizer(args):
+    tokenizer = AutoTokenizer.from_pretrained(
+        args.tokenizer_name
+        if args.tokenizer_name
+        else args.model_name_or_path,
+        use_fast=True,
+    )
+
+    return tokenizer
+
+
 def load_model(args, model_name=None):
     if not model_name:
         model_name = args.model_name
     model_path = os.path.join(args.model_dir, model_name)
     print("Loading Model from:", model_path)
-    load_state = torch.load(model_path)
-    model = get_model(args)
 
-    # 1. load model state
-    model.load_state_dict(load_state['state_dict'], strict=True)
+    # Load pretrained model and tokenizer
+    config = AutoConfig.from_pretrained(
+        args.config_name
+        if args.config_name
+        else args.model_name_or_path,
+    )
+
+    config.num_labels = 7
+    model = AutoModelForSequenceClassification.from_pretrained(
+        args.model_name_or_path,
+        from_tf=bool(".ckpt" in model_path),
+        config=config,
+    ).to(args.device)
 
     print("Loading Model from:", model_path, "...Finished.")
+
     return model
 
 
 def get_loaders(args, train, valid, is_inference=False):
     pin_memory = True
     train_loader, valid_loader = None, None
+
+    if is_inference:
+        test_dataset = YNAT_dataset(args, valid, is_inference)
+        test_loader = torch.utils.data.DataLoader(test_dataset, num_workers=args.num_workers, shuffle=False,
+                                                  batch_size=args.batch_size, pin_memory=pin_memory)
+        return test_loader
 
     if train is not None:
         train_dataset = YNAT_dataset(args, train, is_inference)
@@ -120,10 +148,11 @@ def compute_loss(preds, targets, args):
         preds   : (batch_size, max_seq_len)
         targets : (batch_size, max_seq_len)
     """
+    # print(preds, targets)
     loss = get_criterion(preds, targets, args)
     # 마지막 시퀀스에 대한 값만 loss 계산
-    loss = loss[:, -1]
-    loss = torch.mean(loss)
+    # loss = loss[:, -1]
+    # loss = torch.mean(loss)
     return loss
 
 
@@ -136,5 +165,7 @@ def get_criterion(pred, target, args):
         loss = nn.MSELoss(reduction="none")
     elif args.criterion == "L1":
         loss = nn.L1Loss(reduction="none")
+    elif args.criterion == "CE":
+        loss = nn.CrossEntropyLoss()
     # NLL, CrossEntropy not available
     return loss(pred, target)

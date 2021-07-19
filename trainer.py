@@ -1,6 +1,7 @@
 import wandb
 from sklearn.metrics import accuracy_score
 from torch.nn.functional import one_hot
+from tqdm import tqdm
 
 from utils import *
 
@@ -30,7 +31,7 @@ def run(args, model, tokenizer, train_data, valid_data, cv_count):
         train_acc, train_loss = train(args, model, tokenizer, train_loader, optimizer)
 
         # VALID
-        acc, _, _, val_loss = validate(args, valid_loader, model)
+        acc, val_loss = validate(args, model, tokenizer, valid_loader)
 
         # TODO: model save or early stopping
         if args.scheduler == 'plateau':
@@ -67,21 +68,88 @@ def run(args, model, tokenizer, train_data, valid_data, cv_count):
     return best_acc
 
 
+def inference(args, test_data):
+    ckpt_file_names = []
+    all_fold_preds = []
+
+    if not args.cv_strategy:
+        ckpt_file_names = [args.model_name]
+    else:
+        ckpt_file_names = [f"{args.model_name.split('.pt')[0]}_{i + 1}.pt" for i in range(args.kfold_num)]
+
+    tokenizer = load_tokenizer(args)
+
+    for fold_idx, ckpt in enumerate(ckpt_file_names):
+        model = load_model(args, ckpt)
+        model.eval()
+        test_loader = get_loaders(args, None, test_data, True)
+
+        total_preds = []
+
+        for step, batch in tqdm(enumerate(test_loader), desc='Inferencing', total=len(test_loader)):
+            idx, text = batch
+            tokenized_examples = tokenizer(
+                text,
+                max_length=args.max_seq_len,
+                padding="max_length",
+                return_tensors="pt"
+            ).to(args.device)
+
+            preds = model(**tokenized_examples)
+
+            logits = preds['logits']
+            argmax_logits = torch.argmax(logits, dim=1)
+
+            if args.device == 'cuda':
+                preds = argmax_logits.to('cpu').detach().numpy()
+            else:  # cpu
+                preds = argmax_logits.detach().numpy()
+
+            total_preds += list(preds)
+
+        all_fold_preds.append(total_preds)
+
+        output_file_name = "output.csv" if not args.cv_strategy else f"output_{fold_idx + 1}.csv"
+        write_path = os.path.join(args.output_dir, output_file_name)
+        if not os.path.exists(args.output_dir):
+            os.makedirs(args.output_dir)
+        with open(write_path, 'w', encoding='utf8') as w:
+            print("writing prediction : {}".format(write_path))
+            w.write("index,topic_idx\n")
+            for index, p in enumerate(total_preds):
+                w.write('{},{}\n'.format(index, p))
+
+    if len(all_fold_preds) > 1:
+        # Soft voting ensemble
+        votes = np.sum(all_fold_preds, axis=0) / len(all_fold_preds)
+
+        write_path = os.path.join(args.output_dir, "output_softvote.csv")
+        if not os.path.exists(args.output_dir):
+            os.makedirs(args.output_dir)
+        with open(write_path, 'w', encoding='utf8') as w:
+            print("writing prediction : {}".format(write_path))
+            w.write("id,prediction\n")
+            for id, p in enumerate(votes):
+                w.write('{},{}\n'.format(id, p))
+
+
 def train(args, model, tokenizer, train_loader, optimizer):
     model.train()
 
     total_preds = []
     total_targets = []
     losses = []
-    for step, batch in enumerate(train_loader):
+    for step, batch in tqdm(enumerate(train_loader), desc='Training', total=len(train_loader)):
         idx, text, label = batch
-
+        # print(idx[:10])
+        # print(text[:10])
+        # print(label[:10])
         tokenized_examples = tokenizer(
             text,
             max_length=args.max_seq_len,
             padding="max_length",
             return_tensors="pt"
-        )
+        ).to(args.device)
 
         # tokenize
         # 모델의 입력으로
@@ -91,8 +159,12 @@ def train(args, model, tokenizer, train_loader, optimizer):
 
         preds = model(**tokenized_examples)
         logits = preds['logits']
+        softmax_logits = nn.Softmax(dim=1)(logits)
         argmax_logits = torch.argmax(logits, dim=1)
-        loss = compute_loss(logits, one_hot(label).type(torch.FloatTensor), args)
+
+        loss = compute_loss(softmax_logits.to(args.device),
+                            label.to(args.device), args)
+
         update_params(loss, model, optimizer, args)
 
         if step % args.log_steps == 0:
@@ -117,11 +189,61 @@ def train(args, model, tokenizer, train_loader, optimizer):
     # Train AUC / ACC
     acc = accuracy_score(total_targets, total_preds)
     loss_avg = sum(losses) / len(losses)
-    print(f'TRAIN ACC : {acc}')
+    print(f'TRAIN ACC : {acc}, TRAIN LOSS : {loss_avg}')
     return acc, loss_avg
 
 
-def validate(args, valid_loader, model):
-    pass
+def validate(args, model, tokenizer, valid_loader):
+    model.eval()
 
+    total_preds = []
+    total_targets = []
+    losses = []
+    for step, batch in tqdm(enumerate(valid_loader), desc='Training', total=len(valid_loader)):
+        idx, text, label = batch
 
+        tokenized_examples = tokenizer(
+            text,
+            max_length=args.max_seq_len,
+            padding="max_length",
+            return_tensors="pt"
+        ).to(args.device)
+
+        # tokenize
+        # 모델의 입력으로
+        # label은 one-hot?
+        # loss 주고
+        # argmax를 golden
+
+        preds = model(**tokenized_examples)
+        logits = preds['logits']
+        softmax_logits = nn.Softmax(dim=1)(logits)
+        argmax_logits = torch.argmax(logits, dim=1)
+
+        loss = compute_loss(softmax_logits.to(args.device),
+                            label.to(args.device), args)
+
+        if step % args.log_steps == 0:
+            print(f"Training steps: {step} Loss: {str(loss.item())}")
+
+        if args.device == 'cuda':
+            argmax_logits = argmax_logits.to('cpu').detach().numpy()
+            label = label.to('cpu').detach().numpy()
+            loss = loss.to('cpu').detach().numpy()
+        else:  # cpu
+            argmax_logits = argmax_logits.detach().numpy()
+            label = label.detach().numpy()
+            loss = loss.detach().numpy()
+
+        total_preds.append(argmax_logits)
+        total_targets.append(label)
+        losses.append(loss)
+
+    total_preds = np.concatenate(total_preds)
+    total_targets = np.concatenate(total_targets)
+
+    # Train AUC / ACC
+    acc = accuracy_score(total_targets, total_preds)
+    loss_avg = sum(losses) / len(losses)
+    print(f'VALID ACC : {acc}, VALID LOSS : {loss_avg}')
+    return acc, loss_avg

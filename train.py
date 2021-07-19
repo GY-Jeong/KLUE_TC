@@ -2,6 +2,8 @@ import torch
 from sklearn.model_selection import KFold, StratifiedKFold
 from transformers import AutoConfig, AutoTokenizer, AutoModelForSequenceClassification
 import wandb
+from datetime import datetime
+from pytz import timezone
 
 import trainer
 from args import parse_args
@@ -10,7 +12,12 @@ from utils import set_seeds
 
 
 def main(args):
+    if not args.run_name:
+        args.run_name = datetime.now(timezone("Asia/Seoul")).strftime("%Y-%m-%d-%H:%M:%S")
+    wandb.init(project='KLUE_TC', name=args.run_name, config=vars(args))
+
     set_seeds(args.seed)
+
     device = "cuda" if torch.cuda.is_available() else "cpu"
     args.device = device
 
@@ -33,7 +40,7 @@ def main(args):
         args.model_name_or_path,
         from_tf=bool(".ckpt" in args.model_name_or_path),
         config=config,
-    )
+    ).to(args.device)
 
     preprocess = Preprocess(args)
     preprocess.load_train_data()
@@ -72,5 +79,5 @@ def main(args):
 
 
 if __name__ == '__main__':
-    args = parse_args()
+    args = parse_args('train')
     main(args)
