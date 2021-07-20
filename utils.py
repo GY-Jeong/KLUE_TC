@@ -98,6 +98,7 @@ def load_model(args, model_name=None):
     if not model_name:
         model_name = args.model_name
     model_path = os.path.join(args.model_dir, model_name)
+    load_state = torch.load(model_path)
     print("Loading Model from:", model_path)
 
     # Load pretrained model and tokenizer
@@ -108,11 +109,16 @@ def load_model(args, model_name=None):
     )
 
     config.num_labels = 7
+
     model = AutoModelForSequenceClassification.from_pretrained(
-        args.model_name_or_path,
+        model_path,
         from_tf=bool(".ckpt" in model_path),
-        config=config,
+        config=config
     ).to(args.device)
+
+    model.load_state_dict(load_state['state_dict'], strict=True)
+
+    print(model)
 
     print("Loading Model from:", model_path, "...Finished.")
 

@@ -85,6 +85,7 @@ def inference(args, test_data):
         test_loader = get_loaders(args, None, test_data, True)
 
         total_preds = []
+        total_ids = []
 
         for step, batch in tqdm(enumerate(test_loader), desc='Inferencing', total=len(test_loader)):
             idx, text = batch
@@ -106,6 +107,7 @@ def inference(args, test_data):
                 preds = argmax_logits.detach().numpy()
 
             total_preds += list(preds)
+            total_ids += list(idx)
 
         all_fold_preds.append(total_preds)
 
@@ -116,7 +118,7 @@ def inference(args, test_data):
         with open(write_path, 'w', encoding='utf8') as w:
             print("writing prediction : {}".format(write_path))
             w.write("index,topic_idx\n")
-            for index, p in enumerate(total_preds):
+            for index, p in zip(total_ids, total_preds):
                 w.write('{},{}\n'.format(index, p))
 
     if len(all_fold_preds) > 1:
@@ -128,8 +130,8 @@ def inference(args, test_data):
             os.makedirs(args.output_dir)
         with open(write_path, 'w', encoding='utf8') as w:
             print("writing prediction : {}".format(write_path))
-            w.write("id,prediction\n")
-            for id, p in enumerate(votes):
+            w.write("index,topic_idx\n")
+            for id, p in zip(total_ids, votes):
                 w.write('{},{}\n'.format(id, p))
 
 
@@ -141,6 +143,7 @@ def train(args, model, tokenizer, train_loader, optimizer):
     losses = []
     for step, batch in tqdm(enumerate(train_loader), desc='Training', total=len(train_loader)):
         idx, text, label = batch
+        label = label.to(args.device)
         # print(idx[:10])
         # print(text[:10])
         # print(label[:10])
@@ -162,13 +165,18 @@ def train(args, model, tokenizer, train_loader, optimizer):
         softmax_logits = nn.Softmax(dim=1)(logits)
         argmax_logits = torch.argmax(logits, dim=1)
 
-        loss = compute_loss(softmax_logits.to(args.device),
-                            label.to(args.device), args)
+        # one_hot_logits = one_hot(argmax_logits, num_classes=7).float()
+        # print(one_hot(argmax_logits, num_classes=7).type(torch.FloatTensor))
+        loss = compute_loss(logits,
+                            label, args)
+
+        # print(loss)
 
         update_params(loss, model, optimizer, args)
 
         if step % args.log_steps == 0:
             print(f"Training steps: {step} Loss: {str(loss.item())}")
+            wandb.log({"steps": step, "train_loss": loss.item()})
 
         if args.device == 'cuda':
             argmax_logits = argmax_logits.to('cpu').detach().numpy()
@@ -201,7 +209,7 @@ def validate(args, model, tokenizer, valid_loader):
     losses = []
     for step, batch in tqdm(enumerate(valid_loader), desc='Training', total=len(valid_loader)):
         idx, text, label = batch
-
+        label = label.to(args.device)
         tokenized_examples = tokenizer(
             text,
             max_length=args.max_seq_len,
@@ -220,11 +228,13 @@ def validate(args, model, tokenizer, valid_loader):
         softmax_logits = nn.Softmax(dim=1)(logits)
         argmax_logits = torch.argmax(logits, dim=1)
 
-        loss = compute_loss(softmax_logits.to(args.device),
-                            label.to(args.device), args)
+        # one_hot_logits = one_hot(argmax_logits, num_classes=7).float()
+        # print(one_hot(argmax_logits, num_classes=7).type(torch.FloatTensor))
+        loss = compute_loss(logits,
+                            label, args)
 
         if step % args.log_steps == 0:
-            print(f"Training steps: {step} Loss: {str(loss.item())}")
+            print(f"Validation steps: {step} Loss: {str(loss.item())}")
 
         if args.device == 'cuda':
             argmax_logits = argmax_logits.to('cpu').detach().numpy()
