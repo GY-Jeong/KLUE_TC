@@ -6,13 +6,14 @@ from tqdm import tqdm
 from utils import *
 
 
-def run(args, model, tokenizer, train_data, valid_data, cv_count):
+def run(args, tokenizer, train_data, valid_data, cv_count):
     train_loader, valid_loader = get_loaders(args, train_data, valid_data)
 
     # only when using warmup scheduler
     # args.total_steps = int(len(train_loader.dataset) / args.batch_size) * args.n_epochs
     # args.warmup_steps = int(args.total_steps * args.warmup_ratio)
 
+    model = get_model(args)
     optimizer = get_optimizer(model, args)
     scheduler = get_scheduler(optimizer, args)
 

@@ -125,6 +125,24 @@ def load_model(args, model_name=None):
     return model
 
 
+def get_model(args):
+    # Load pretrained model and tokenizer
+    config = AutoConfig.from_pretrained(
+        args.config_name
+        if args.config_name
+        else args.model_name_or_path,
+    )
+
+    config.num_labels = 7
+    model = AutoModelForSequenceClassification.from_pretrained(
+        args.model_name_or_path,
+        from_tf=bool(".ckpt" in args.model_name_or_path),
+        config=config,
+    ).to(args.device)
+
+    return model
+
+
 def get_loaders(args, train, valid, is_inference=False):
     pin_memory = True
     train_loader, valid_loader = None, None

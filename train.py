@@ -21,26 +21,12 @@ def main(args):
     device = "cuda" if torch.cuda.is_available() else "cpu"
     args.device = device
 
-    # Load pretrained model and tokenizer
-    config = AutoConfig.from_pretrained(
-        args.config_name
-        if args.config_name
-        else args.model_name_or_path,
-    )
-
     tokenizer = AutoTokenizer.from_pretrained(
         args.tokenizer_name
         if args.tokenizer_name
         else args.model_name_or_path,
         use_fast=True,
     )
-
-    config.num_labels = 7
-    model = AutoModelForSequenceClassification.from_pretrained(
-        args.model_name_or_path,
-        from_tf=bool(".ckpt" in args.model_name_or_path),
-        config=config,
-    ).to(args.device)
 
     preprocess = Preprocess(args)
     preprocess.load_train_data()
@@ -63,7 +49,7 @@ def main(args):
     for fold_num, (train_index, valid_index) in enumerate(splits):
         train_data = train_data_origin[train_index]
         valid_data = train_data_origin[valid_index]
-        best_acc = trainer.run(args, model, tokenizer, train_data, valid_data, fold_num + 1)
+        best_acc = trainer.run(args, tokenizer, train_data, valid_data, fold_num + 1)
 
         if not args.cv_strategy:
             break
