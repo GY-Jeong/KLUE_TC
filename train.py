@@ -57,7 +57,7 @@ def main(args):
         acc_avg += best_acc
 
     if args.cv_strategy:
-        acc_avg /= args.kfold_num
+        acc_avg /= args.fold_num
         wandb.log({"auc_avg": acc_avg})
 
         print("*" * 50, 'auc_avg', "*" * 50)

@@ -76,7 +76,7 @@ def inference(args, test_data):
     if not args.cv_strategy:
         ckpt_file_names = [args.model_name]
     else:
-        ckpt_file_names = [f"{args.model_name.split('.pt')[0]}_{i + 1}.pt" for i in range(args.kfold_num)]
+        ckpt_file_names = [f"{args.model_name.split('.pt')[0]}_{i + 1}.pt" for i in range(args.fold_num)]
 
     tokenizer = load_tokenizer(args)
 

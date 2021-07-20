@@ -76,13 +76,6 @@ def update_params(loss, model, optimizer, args):
     optimizer.zero_grad()
 
 
-def save_checkpoint(state, model_dir, model_filename):
-    print('saving model ...')
-    if not os.path.exists(model_dir):
-        os.makedirs(model_dir)
-    torch.save(state, os.path.join(model_dir, model_filename))
-
-
 def load_tokenizer(args):
     tokenizer = AutoTokenizer.from_pretrained(
         args.tokenizer_name
