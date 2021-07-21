@@ -70,8 +70,9 @@ def run(args, tokenizer, train_data, valid_data, cv_count):
 
 
 def inference(args, test_data):
-    ckpt_file_names = []
+    # ckpt_file_names = []
     all_fold_preds = []
+    all_fold_argmax_preds = []
 
     if not args.cv_strategy:
         ckpt_file_names = [args.model_name]
@@ -86,6 +87,7 @@ def inference(args, test_data):
         test_loader = get_loaders(args, None, test_data, True)
 
         total_preds = []
+        total_argmax_preds = []
         total_ids = []
 
         for step, batch in tqdm(enumerate(test_loader), desc='Inferencing', total=len(test_loader)):
@@ -103,14 +105,18 @@ def inference(args, test_data):
             argmax_logits = torch.argmax(logits, dim=1)
 
             if args.device == 'cuda':
-                preds = argmax_logits.to('cpu').detach().numpy()
+                argmax_preds = argmax_logits.to('cpu').detach().numpy()
+                preds = logits.to('cpu').detach().numpy()
             else:  # cpu
-                preds = argmax_logits.detach().numpy()
+                argmax_preds = argmax_logits.detach().numpy()
+                preds = logits.detach().numpy()
 
             total_preds += list(preds)
+            total_argmax_preds += list(argmax_preds)
             total_ids += list(idx)
 
         all_fold_preds.append(total_preds)
+        all_fold_argmax_preds.append(total_argmax_preds)
 
         output_file_name = "output.csv" if not args.cv_strategy else f"output_{fold_idx + 1}.csv"
         write_path = os.path.join(args.output_dir, output_file_name)
@@ -119,12 +125,13 @@ def inference(args, test_data):
         with open(write_path, 'w', encoding='utf8') as w:
             print("writing prediction : {}".format(write_path))
             w.write("index,topic_idx\n")
-            for index, p in zip(total_ids, total_preds):
+            for index, p in zip(total_ids, total_argmax_preds):
                 w.write('{},{}\n'.format(index, p))
 
     if len(all_fold_preds) > 1:
         # Soft voting ensemble
-        votes = np.sum(all_fold_preds, axis=0) / len(all_fold_preds)
+        votes = np.sum(all_fold_preds, axis=0)
+        votes = np.argmax(votes, axis=1)
 
         write_path = os.path.join(args.output_dir, "output_softvote.csv")
         if not os.path.exists(args.output_dir):

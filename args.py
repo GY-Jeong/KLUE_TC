@@ -4,7 +4,7 @@ import argparse
 def parse_args(mode):
     parser = argparse.ArgumentParser()
     if mode == 'train':
-        parser.add_argument('--run_name', default='INIT', type=str, help='wandb run name. Defaults to current time')
+        parser.add_argument('--run_name', default=None, type=str, help='wandb run name. Defaults to current time')
     else:
         parser.add_argument('--model_name', default=None, type=str)
         parser.add_argument('--output_dir', default='output/', type=str)
@@ -21,7 +21,7 @@ def parse_args(mode):
     parser.add_argument('--config_name', default=None, type=str, help='model config name')
     parser.add_argument('--tokenizer_name', default=None, type=str, help='model tokenizer name')
 
-    parser.add_argument('--cv_strategy', default=None, type=str, help='choose cross validation strategy')
+    parser.add_argument('--cv_strategy', default='stratified', type=str, help='choose cross validation strategy')
     parser.add_argument('--fold_num', default=5, type=int, help='')
 
     parser.add_argument('--num_workers', default=1, type=int)
@@ -29,7 +29,7 @@ def parse_args(mode):
     # 훈련
     parser.add_argument('--n_epochs', default=10, type=int, help='number of epochs')
     parser.add_argument('--batch_size', default=64, type=int, help='batch size')
-    parser.add_argument('--lr', default=5e-5, type=float, help='learning rate')
+    parser.add_argument('--lr', default=1e-5, type=float, help='learning rate')
     parser.add_argument('--clip_grad', default=10, type=int, help='clip grad')
     parser.add_argument('--patience', default=5, type=int, help='for early stopping')
     parser.add_argument('--max_seq_len', default=40, type=int, help='for early stopping')
@@ -49,9 +49,22 @@ def parse_args(mode):
     parser.add_argument('--plateau_patience', default=10, type=int, help='patience of plateau scheduler')
     parser.add_argument('--plateau_factor', default=0.5, type=float, help='factor of plateau scheduler')
 
+    # cosine anealing
+    parser.add_argument('--t_max', default=10, type=int, help='cosine annealing scheduler: t max')
+    parser.add_argument('--T_0', default=10, type=int, help='cosine annealing warm start scheduler: T_0')
+    parser.add_argument('--T_mult', default=2, type=int, help='cosine annealing warm start scheduler: T_mult')
+    parser.add_argument('--eta_min', default=0.01, type=float, help='cosine annealing warm start scheduler: eta_min')
+
+    # linear_warmup
+    parser.add_argument('--warmup_ratio', default=0.3, type=float, help='warmup step ratio')
+
+    # Step LR
+    parser.add_argument('--step_size', default=50, type=int, help='step LR scheduler: step size')
+    parser.add_argument('--gamma', default=0.1, type=float, help='step LR scheduler: gamma')
+
     parser.add_argument('--criterion', default='CE', type=str, help='criterion type')
 
-    parser.add_argument('--log_steps', default=20, type=int, help='print log per n steps')
+    parser.add_argument('--log_steps', default=100, type=int, help='print log per n steps')
 
     args = parser.parse_args()
 
