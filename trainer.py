@@ -10,8 +10,8 @@ def run(args, tokenizer, train_data, valid_data, cv_count):
     train_loader, valid_loader = get_loaders(args, train_data, valid_data)
 
     # only when using warmup scheduler
-    # args.total_steps = int(len(train_loader.dataset) / args.batch_size) * args.n_epochs
-    # args.warmup_steps = int(args.total_steps * args.warmup_ratio)
+    args.total_steps = int(len(train_loader.dataset) / args.batch_size) * args.n_epochs
+    args.warmup_steps = int(args.total_steps * args.warmup_ratio)
 
     model = get_model(args)
     optimizer = get_optimizer(model, args)
@@ -149,7 +149,7 @@ def train(args, model, tokenizer, train_loader, optimizer):
     total_preds = []
     total_targets = []
     losses = []
-    for step, batch in tqdm(enumerate(train_loader), desc='Training', total=len(train_loader)):
+    for step, batch in tqdm(enumerate(train_loader), desc='Train', total=len(train_loader)):
         idx, text, label = batch
         label = label.to(args.device)
         # print(idx[:10])
@@ -215,7 +215,7 @@ def validate(args, model, tokenizer, valid_loader):
     total_preds = []
     total_targets = []
     losses = []
-    for step, batch in tqdm(enumerate(valid_loader), desc='Training', total=len(valid_loader)):
+    for step, batch in tqdm(enumerate(valid_loader), desc='Validation', total=len(valid_loader)):
         idx, text, label = batch
         label = label.to(args.device)
         tokenized_examples = tokenizer(
