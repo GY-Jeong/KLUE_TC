@@ -1,0 +1,4 @@
+data/new/article_postprocessing.csv filter=lfs diff=lfs merge=lfs -text
+data/article.txt filter=lfs diff=lfs merge=lfs -text
+data/article.csv filter=lfs diff=lfs merge=lfs -text
+data/new/article_new.txt filter=lfs diff=lfs merge=lfs -text
