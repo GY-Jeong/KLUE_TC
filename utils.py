@@ -12,6 +12,7 @@ from transformers import get_linear_schedule_with_warmup
 from transformers import AutoConfig, AutoTokenizer, AutoModelForSequenceClassification
 
 from dataloader import YNAT_dataset
+from classifier import TextClassifier
 
 
 def set_seeds(seed=42):
@@ -69,11 +70,24 @@ def get_scheduler(optimizer, args):
     return scheduler
 
 
-def update_params(loss, model, optimizer, args):
-    loss.backward()
-    torch.nn.utils.clip_grad_norm_(model.parameters(), args.clip_grad)
-    optimizer.step()
-    optimizer.zero_grad()
+def update_params(loss, model, optimizer, batch_idx, max_len, args):
+    if args.gradient_accumulation:
+        # normalize loss to account for batch accumulation
+        loss = loss / args.accum_iter
+
+        # backward pass
+        loss.backward()
+
+        # weights update
+        if ((batch_idx + 1) % args.accum_iter == 0) or (batch_idx + 1 == max_len):
+            torch.nn.utils.clip_grad_norm_(model.parameters(), args.clip_grad)
+            optimizer.step()
+            optimizer.zero_grad()
+    else:
+        loss.backward()
+        torch.nn.utils.clip_grad_norm_(model.parameters(), args.clip_grad)
+        optimizer.step()
+        optimizer.zero_grad()
 
 
 def load_tokenizer(args):
@@ -92,7 +106,8 @@ def load_model(args, model_name=None):
         model_name = args.model_name
     model_path = os.path.join(args.model_dir, model_name)
     print("Loading Model from:", model_path)
-    load_state = torch.load(model_path)
+    # load_state = torch.load(model_path)
+    load_state = torch.load(model_name)
 
     # Load pretrained model and tokenizer
     config = AutoConfig.from_pretrained(
@@ -104,14 +119,17 @@ def load_model(args, model_name=None):
     config.num_labels = 7
 
     model = AutoModelForSequenceClassification.from_pretrained(
-        model_path,
-        from_tf=bool(".ckpt" in model_path),
-        config=config
-    ).to(args.device)
+        args.model_name_or_path,
+        from_tf=bool(".ckpt" in args.model_name_or_path),
+        config=config,
+    )
+
+    if args.classifier == "CNN":
+        model.classifier = TextClassifier(args)
 
     model.load_state_dict(load_state['state_dict'], strict=True)
 
-    # print(model)
+    model = model.to(args.device)
 
     print("Loading Model from:", model_path, "...Finished.")
 
@@ -127,11 +145,17 @@ def get_model(args):
     )
 
     config.num_labels = 7
+
     model = AutoModelForSequenceClassification.from_pretrained(
         args.model_name_or_path,
         from_tf=bool(".ckpt" in args.model_name_or_path),
         config=config,
-    ).to(args.device)
+    )
+
+    if args.classifier == "CNN":
+        model.classifier = TextClassifier(args)
+
+    model = model.to(args.device)
 
     return model
 
@@ -184,5 +208,8 @@ def get_criterion(pred, target, args):
         loss = nn.L1Loss(reduction="none")
     elif args.criterion == "CE":
         loss = nn.CrossEntropyLoss()
-    # NLL, CrossEntropy not available
+    elif args.criterion == "WeightedCE":
+        weights = [1, 1, 2, 1, 1, 1, 1]
+        class_weights = torch.FloatTensor(weights).cuda()
+        loss = nn.CrossEntropyLoss(weight=class_weights)
     return loss(pred, target)

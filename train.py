@@ -1,11 +1,12 @@
-import torch
-from sklearn.model_selection import KFold, StratifiedKFold
-from transformers import AutoConfig, AutoTokenizer, AutoModelForSequenceClassification
-import wandb
 from datetime import datetime
+
+import torch
 from pytz import timezone
+from sklearn.model_selection import KFold, StratifiedKFold
+from transformers import AutoTokenizer
 
 import trainer
+import wandb
 from args import parse_args
 from dataloader import Preprocess
 from utils import set_seeds
@@ -33,7 +34,6 @@ def main(args):
     train_data_origin = preprocess.train_data
 
     print(f"Size of train data : {len(train_data_origin)}")
-    # print(f"size of test data : {len(test_data)}")
 
     if args.cv_strategy == 'random':
         kf = KFold(n_splits=args.fold_num, shuffle=True)
@@ -58,9 +58,9 @@ def main(args):
 
     if args.cv_strategy:
         acc_avg /= args.fold_num
-        wandb.log({"auc_avg": acc_avg})
+        wandb.log({"acc_avg": acc_avg})
 
-        print("*" * 50, 'auc_avg', "*" * 50)
+        print("*" * 50, 'acc_avg', "*" * 50)
         print(acc_avg)
 
 
